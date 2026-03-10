@@ -85,7 +85,14 @@ def main(cfg: DictConfig):
 
     vocab_size = math.ceil(len(vocab) / 64) * 64
 
-    train_dataset, val_dataset = train_dataset.train_test_split(cfg.val_size)
+    if cfg.val_data_fp is not None:
+        val_dataset = TimelineDataset(
+            cfg.val_data_fp,
+            n_positions=cfg.n_positions,
+            is_encoder_decoder=model_type == ModelType.ENC_DECODER,
+        )
+    else:
+        train_dataset, val_dataset = train_dataset.train_test_split(cfg.val_size)
     train_dataloader, val_dataloader = (
         DataLoader(
             dataset,

@@ -1,5 +1,6 @@
 model_type: "decoder"
 data_fp: ???
+val_data_fp: null
 val_size: ???
 out_dir: "out"
 eval_interval: 2000
