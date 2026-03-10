@@ -13,6 +13,8 @@
 #SBATCH --mail-user=gbk2114@cumc.columbia.edu
 
 export HYDRA_FULL_ERROR=1
+export MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
+export MASTER_PORT=29500
 
 data_path="/users/gbk2114/data/ethos-tokenize"
 
@@ -21,7 +23,13 @@ cd $HOME/ethos-ares
 
 model_name="$(date +%Y-%m-%d_%H-%M-%S)"
 
-uv run torchrun --no_python --standalone --nproc_per_node=2 ethos_train \
+srun uv run torchrun --no_python \
+  --nnodes=$SLURM_NNODES \
+  --nproc_per_node=2 \
+  --rdzv_id=$SLURM_JOB_ID \
+  --rdzv_backend=c10d \
+  --rdzv_endpoint=$MASTER_ADDR:$MASTER_PORT \
+  ethos_train \
   data_fp=$data_path/train \
   wandb_run_name="$model_name" \
   out_dir="${data_path}/models/${model_name}"
