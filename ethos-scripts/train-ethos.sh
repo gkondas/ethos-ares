@@ -25,11 +25,8 @@ echo "HOSTNAME=$(hostname)"
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi -L
 
-model_name="$(date +%Y-%m-%d_%H-%M-%S)"
-
 uv run ethos_train \
   data_fp=$data_path/train \
-  wandb_run_name="$model_name" \
-  out_dir="${data_path}/models/${model_name}"
+  out_dir="${data_path}/models"
 
 

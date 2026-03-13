@@ -1,6 +1,7 @@
 import math
 import os
 import time
+from datetime import datetime
 from pathlib import Path
 
 import hydra
@@ -48,7 +49,8 @@ def main(cfg: DictConfig):
     model_type = ModelType(cfg.model_type)
 
     device = cfg.device
-    out_dir = Path(cfg.out_dir)
+    run_name = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_dir = Path(cfg.out_dir) / run_name
     # various inits, derived attributes, I/O setup
     ddp = int(os.environ.get("RANK", -1)) != -1  # is this a ddp run?
     if ddp:
@@ -208,7 +210,7 @@ def main(cfg: DictConfig):
         run_id = wandb_path.split("/")[-1] if wandb_path is not None else None
         wandb_run = wandb.init(
             project=cfg.wandb_project,
-            name=cfg.wandb_run_name,
+            name=run_name,
             config=cfg_dict,
             tags=[dataset_name],
             resume_from=f"{run_id}?_step={iter_num}" if run_id is not None else None,

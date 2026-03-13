@@ -10,11 +10,10 @@ resume: false
 # logging
 wandb_log: true
 wandb_project: "ethos"
-wandb_run_name: "ethos_run"
 # training parameters
 gradient_accumulation_steps: 20 # Assuming 5 * 8 / 2 (doubled batch size)
 batch_size: 64
-num_workers: 4
+num_workers: 0
 # model parameters
 n_positions: 2048
 n_layer: 6
