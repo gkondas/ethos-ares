@@ -104,7 +104,7 @@ def main(cfg: DictConfig):
     )
     train_dataloader = make_infinite_loader(train_dataloader)
 
-    eval_iters = len(val_dataset) // (cfg.batch_size * cfg.n_positions) + 1
+    eval_iters = cfg.eval_iters
     if master_process:
         logger.info(
             "Train dataset size: {:,}, Val dataset size: {:,} (eval_iters={})".format(
@@ -228,11 +228,11 @@ def main(cfg: DictConfig):
             losses = estimate_loss(
                 model,
                 ctx,
-                loaders=[("train", train_dataloader), ("val", val_dataloader)],
+                loaders=[("train_eval", train_dataloader), ("val", val_dataloader)],
                 eval_iters=eval_iters,
             )
             if ddp:
-                for key in ["loss/train", "loss/val"]:
+                for key in ["loss/train_eval", "loss/val"]:
                     output = [None] * ddp_world_size
                     th.distributed.all_gather_object(output, losses[key])
                     losses[key] = sum(output) / ddp_world_size
@@ -240,7 +240,7 @@ def main(cfg: DictConfig):
                 logger.info(
                     "step {}: train loss {:.4f}, val loss {:.4f}".format(
                         iter_num,
-                        losses["loss/train"],
+                        losses["loss/train_eval"],
                         losses["loss/val"],
                     )
                 )
@@ -326,6 +326,8 @@ def main(cfg: DictConfig):
             logger.info(
                 f"[{iter_num}]: loss={lossf:.4f}, time={dt * 1000:.0f}ms, mfu={running_mfu:.2%}"
             )
+            if online_logger is not None:
+                online_logger.log({"loss/train": lossf, "other/iter": iter_num})
         iter_num += 1
         local_iter_num += 1
 
