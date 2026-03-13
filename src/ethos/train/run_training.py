@@ -332,7 +332,7 @@ def main(cfg: DictConfig):
                 f"[{iter_num}]: loss={lossf:.4f}, time={dt * 1000:.0f}ms, mfu={running_mfu:.2%}"
             )
             if online_logger is not None:
-                online_logger.log({"loss/train": lossf, "other/iter": iter_num})
+                online_logger.log({"loss/train": lossf, "other/iter": iter_num, "other/lr": lr})
         iter_num += 1
         local_iter_num += 1
 
