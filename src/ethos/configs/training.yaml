@@ -11,7 +11,7 @@ resume: false
 wandb_log: true
 wandb_project: "ethos"
 # training parameters
-gradient_accumulation_steps: 20 # Assuming 5 * 8 / 2 (doubled batch size)
+gradient_accumulation_steps: 8 # Assuming 5 * 8 / 2 (doubled batch size)
 batch_size: 64
 num_workers: 2
 # model parameters
