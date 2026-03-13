@@ -186,10 +186,11 @@ def main(cfg: DictConfig):
     if master_process:
         logger.info(f"Number of parameters: {num_params / 1e6:.2f}M")
         logger.info(("Not c" if cfg.no_compile else "C") + "ompiling the model...")
-    model = th.compile(raw_model, disable=cfg.no_compile)
-
+    underlying_model = raw_model
     if ddp:
-        model = DDP(model, device_ids=[ddp_local_rank])
+        raw_model = DDP(raw_model, device_ids=[ddp_local_rank])
+
+    model = th.compile(raw_model, disable=cfg.no_compile)
 
     # logging
     online_logger, wandb_run = None, None
@@ -204,7 +205,7 @@ def main(cfg: DictConfig):
                 "vocab_size": len(vocab),
                 "vocab_size_train": vocab_size,
                 "model_num_params": num_params,
-                "model_num_params_total": raw_model.num_parameters(exclude_embeddings=False),
+                "model_num_params_total": underlying_model.num_parameters(exclude_embeddings=False),
             }
         )
         run_id = wandb_path.split("/")[-1] if wandb_path is not None else None
@@ -252,11 +253,11 @@ def main(cfg: DictConfig):
                 if iter_num > 0:
                     checkpoint = {
                         "iter_num": iter_num,
-                        "model": raw_model.state_dict(),
+                        "model": underlying_model.state_dict(),
                         "optimizer": optimizer.state_dict(),
                         "best_val_loss": losses["loss/val"],
                         "best_metric_score": best_metric_score,
-                        "model_config": raw_model.config,
+                        "model_config": underlying_model.config,
                         "vocab": vocab.stoi,
                         "model_type": str(model_type),
                         "wandb_path": wandb_run.path if wandb_run is not None else None,
@@ -325,7 +326,7 @@ def main(cfg: DictConfig):
             lossf = loss.item() * cfg.gradient_accumulation_steps
             if local_iter_num >= 5 and model_type == ModelType.DECODER:
                 mfu = estimate_mfu(
-                    raw_model, num_params, cfg.batch_size * cfg.gradient_accumulation_steps, dt
+                    underlying_model, num_params, cfg.batch_size * cfg.gradient_accumulation_steps, dt
                 )
                 running_mfu = mfu if running_mfu == -1.0 else 0.9 * running_mfu + 0.1 * mfu
             logger.info(
