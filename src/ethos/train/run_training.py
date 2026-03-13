@@ -99,6 +99,9 @@ def main(cfg: DictConfig):
             batch_size=cfg.batch_size,
             shuffle=not ddp,
             sampler=DistributedSampler(dataset) if ddp else None,
+            num_workers=cfg.num_workers,
+            pin_memory=True,
+            persistent_workers=cfg.num_workers > 0,
         )
         for dataset in [train_dataset, val_dataset]
     )
