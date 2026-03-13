@@ -6,7 +6,9 @@
 data/
 results/
 cache/
-
+wandb/
+wandb/*/
+ethos-scripts/logs/
 # CMake
 cmake-build-*/
 

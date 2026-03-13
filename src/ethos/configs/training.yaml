@@ -13,7 +13,7 @@ wandb_project: "ethos"
 # training parameters
 gradient_accumulation_steps: 20 # Assuming 5 * 8 / 2 (doubled batch size)
 batch_size: 64
-num_workers: 0
+num_workers: 2
 # model parameters
 n_positions: 2048
 n_layer: 6
