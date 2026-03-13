@@ -18,7 +18,8 @@ def estimate_loss(
 
     out = {}
     for split, dataloader in loaders:
-        losses = th.empty(eval_iters, device=model.device)
+        device = next(model.parameters()).device
+        losses = th.empty(eval_iters, device=device)
         for i, (X, Y) in zip(range(eval_iters), dataloader):
             with ctx:
                 if isinstance(X, tuple):
