@@ -4,7 +4,7 @@
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:2
+#SBATCH --gres=gpu:1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
@@ -27,7 +27,7 @@ nvidia-smi -L
 
 model_name="$(date +%Y-%m-%d_%H-%M-%S)"
 
-uv run torchrun --no_python --standalone --nproc_per_node=2 ethos_train \
+uv run ethos_train \
   data_fp=$data_path/train \
   wandb_run_name="$model_name" \
   out_dir="${data_path}/models/${model_name}" \
