@@ -3,10 +3,10 @@
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --partition=gpu
 #SBATCH --nodes=1
-#SBATCH --gres=gpu:1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=32G
+#SBATCH --gres=gpu:2
+#SBATCH --ntasks-per-node=2
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=64G
 #SBATCH --time=72:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=gbk2114@cumc.columbia.edu
@@ -24,7 +24,7 @@ echo "HOSTNAME=$(hostname)"
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi -L
 
-uv run ethos_train \
+uv run torchrun --standalone --nproc_per_node=2 ethos_train \
   data_fp=$data_path/train \
   out_dir="${data_path}/models"
 
