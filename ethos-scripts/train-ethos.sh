@@ -3,35 +3,34 @@
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --error=logs/%x_%j.err
 #SBATCH --partition=gpu
-#SBATCH --nodes=4
-#SBATCH --ntasks-per-node=1
+#SBATCH --nodes=1
 #SBATCH --gres=gpu:2
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
-#SBATCH --time=12:00:00
+#SBATCH --time=72:00:00
 #SBATCH --mail-type=END,FAIL
 #SBATCH --mail-user=gbk2114@cumc.columbia.edu
 
 export HYDRA_FULL_ERROR=1
-export MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
-export MASTER_PORT=29500
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 data_path="/users/gbk2114/data/ethos-tokenize"
 
 
 cd $HOME/ethos-ares
 
+
+echo "HOSTNAME=$(hostname)"
+echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
+nvidia-smi -L
+
 model_name="$(date +%Y-%m-%d_%H-%M-%S)"
 
-srun uv run torchrun --no_python \
-  --nnodes=$SLURM_NNODES \
-  --nproc_per_node=2 \
-  --rdzv_id=$SLURM_JOB_ID \
-  --rdzv_backend=c10d \
-  --rdzv_endpoint=$MASTER_ADDR:$MASTER_PORT \
-  ethos_train \
+uv run torchrun --no_python --standalone --nproc_per_node=2 ethos_train \
   data_fp=$data_path/train \
   wandb_run_name="$model_name" \
-  out_dir="${data_path}/models/${model_name}"
+  out_dir="${data_path}/models/${model_name}" \
+  no_compile=true
 
 
