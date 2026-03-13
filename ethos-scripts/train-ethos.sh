@@ -30,7 +30,6 @@ model_name="$(date +%Y-%m-%d_%H-%M-%S)"
 uv run ethos_train \
   data_fp=$data_path/train \
   wandb_run_name="$model_name" \
-  out_dir="${data_path}/models/${model_name}" \
-  no_compile=true
+  out_dir="${data_path}/models/${model_name}"
 
 
