@@ -21,6 +21,11 @@ def estimate_loss(
         device = next(model.parameters()).device
         losses = th.empty(eval_iters, device=device)
         for i, (X, Y) in zip(range(eval_iters), dataloader):
+            Y = Y.to(device)
+            if isinstance(X, tuple):
+                X = tuple(x.to(device) for x in X)
+            else:
+                X = X.to(device)
             with ctx:
                 if isinstance(X, tuple):
                     output = model(input_ids=X[0], decoder_input_ids=X[1], labels=Y)
