@@ -53,12 +53,12 @@ def main(cfg: DictConfig):
     # various inits, derived attributes, I/O setup
     ddp = int(os.environ.get("RANK", -1)) != -1  # is this a ddp run?
     if ddp:
-        init_process_group(backend=cfg.backend)
         ddp_rank = int(os.environ["RANK"])
         ddp_local_rank = int(os.environ["LOCAL_RANK"])
         ddp_world_size = int(os.environ["WORLD_SIZE"])
         device = f"cuda:{ddp_local_rank}"
         th.cuda.set_device(device)
+        init_process_group(backend=cfg.backend, device_id=th.device(device))
         master_process = ddp_rank == 0  # this process will do logging, checkpointing etc.
         seed_offset = ddp_rank  # each process gets a different seed
         # world_size number of processes will be training simultaneously, so we can scale
