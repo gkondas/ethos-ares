@@ -31,7 +31,7 @@ echo "MASTER_ADDR=$MASTER_ADDR"
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi -L
 
-srun uv run torchrun \
+srun $HOME/.local/bin/uv run torchrun \
   --no_python \
   --nnodes=$SLURM_NNODES \
   --nproc_per_node=2 \
