@@ -31,13 +31,13 @@ echo "MASTER_ADDR=$MASTER_ADDR"
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi -L
 
-srun $HOME/.local/bin/uv run torchrun \
+srun bash -c "$HOME/.local/bin/uv run torchrun \
   --no_python \
   --nnodes=$SLURM_NNODES \
   --nproc_per_node=2 \
-  --node_rank=$SLURM_NODEID \
+  --node_rank=\$SLURM_NODEID \
   --master_addr=$MASTER_ADDR \
   --master_port=$MASTER_PORT \
   ethos_train \
   data_fp=$data_path/train \
-  out_dir="${data_path}/models"
+  out_dir=${data_path}/models"
