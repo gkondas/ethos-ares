@@ -22,16 +22,16 @@ n_embd: 768
 dropout: 0.3
 activation: "gelu"
 # optimizer parameters
-max_iters: 100000
-lr: 0.0004 # Learning rate
+max_iters: 200000
+lr: 0.0006 # Learning rate
 weight_decay: 0.1
 beta1: 0.9
 beta2: 0.95
 grad_clip: 1.0
 # learning rate schedule
-warmup_iters: 2000
-lr_decay_iters: 50000
-min_lr: 0.00006
+warmup_iters: 5000
+lr_decay_iters: 100000
+min_lr: 0.00001
 # system
 backend: "nccl" # "nccl", "gloo"
 device: "cuda" # "cuda", "cpu"
