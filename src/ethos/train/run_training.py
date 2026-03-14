@@ -1,7 +1,6 @@
 import math
 import os
 import time
-from datetime import datetime
 from pathlib import Path
 
 import hydra
@@ -49,8 +48,8 @@ def main(cfg: DictConfig):
     model_type = ModelType(cfg.model_type)
 
     device = cfg.device
-    run_name = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_dir = Path(cfg.out_dir) / run_name
+    out_dir = Path(cfg.out_dir)
+    run_name = out_dir.name
     # various inits, derived attributes, I/O setup
     ddp = int(os.environ.get("RANK", -1)) != -1  # is this a ddp run?
     if ddp:
@@ -188,6 +187,7 @@ def main(cfg: DictConfig):
         logger.info(("Not c" if cfg.no_compile else "C") + "ompiling the model...")
     underlying_model = raw_model
     if ddp:
+        th.distributed.barrier()  # ensure all ranks finish setup before DDP init
         raw_model = DDP(raw_model, device_ids=[ddp_local_rank])
 
     model = th.compile(raw_model, disable=cfg.no_compile)

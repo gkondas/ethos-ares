@@ -16,10 +16,9 @@ export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export NCCL_DEBUG=INFO
 
 data_path="/users/gbk2114/data/ethos-tokenize"
-
+run_name=$(date +%Y%m%d_%H%M%S)
 
 cd $HOME/ethos-ares
-
 
 echo "HOSTNAME=$(hostname)"
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
@@ -27,6 +26,6 @@ nvidia-smi -L
 
 uv run torchrun --no_python --standalone --nproc_per_node=2 ethos_train \
   data_fp=$data_path/train \
-  out_dir="${data_path}/models"
+  out_dir="${data_path}/models/${run_name}"
 
 

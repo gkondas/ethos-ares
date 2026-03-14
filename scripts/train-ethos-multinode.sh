@@ -20,6 +20,7 @@ export NCCL_SOCKET_IFNAME=^lo,docker
 MASTER_ADDR=$(scontrol show hostnames "$SLURM_JOB_NODELIST" | head -n 1)
 MASTER_PORT=29500
 data_path="/users/gbk2114/data/ethos-tokenize"
+run_name=$(date +%Y%m%d_%H%M%S)
 
 cd $HOME/ethos-ares
 
@@ -40,4 +41,4 @@ srun bash -c "$HOME/.local/bin/uv run torchrun \
   --master_port=$MASTER_PORT \
   ethos_train \
   data_fp=$data_path/train \
-  out_dir=${data_path}/models"
+  out_dir=${data_path}/models/${run_name}"
