@@ -65,7 +65,7 @@ def estimate_mfu(model, num_params, fwdbwd_per_iter, dt):
     flops_per_iter = flops_per_fwdbwd * fwdbwd_per_iter
     # express our flops throughput as ratio of A100 bfloat16 peak flops
     flops_achieved = flops_per_iter * (1.0 / dt)  # per second
-    flops_promised = 312e12  # A100 GPU bfloat16 peak flops is 312 TFLOPS
+    flops_promised = 366e12  # A100 GPU bfloat16 peak flops is 312 TFLOPS, 366 TFLOPS for L40S
     mfu = flops_achieved / flops_promised
     return mfu
 
