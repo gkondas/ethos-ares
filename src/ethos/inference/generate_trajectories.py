@@ -204,15 +204,25 @@ def _format_trajectory(
     return rows
 
 
-def _flush_chunk(writers: list[pq.ParquetWriter | None], chunk_rows: list[list[dict]]) -> None:
-    """Write accumulated rows to their respective open ParquetWriters and clear the lists."""
-    for traj_idx, (writer, rows) in enumerate(zip(writers, chunk_rows)):
-        if writer is not None and rows:
+def _flush_chunk(out_paths: list[Path | None], chunk_rows: list[list[dict]]) -> None:
+    """Write accumulated rows to their parquet files and clear the lists.
+
+    Opens a ParquetWriter per flush (append=True if the file already exists),
+    writes one row group, and closes immediately so the file is valid and
+    readable after every flush.
+    """
+    for traj_idx, (out_fp, rows) in enumerate(zip(out_paths, chunk_rows)):
+        if out_fp is not None and rows:
             df = pl.DataFrame(rows, schema=_TRAJECTORY_SCHEMA).with_columns(
                 pl.col("time").cast(pl.Datetime("us")),
                 pl.col("prediction_time").cast(pl.Datetime("us")),
             )
-            writer.write_table(df.to_arrow().cast(_PA_SCHEMA))
+            table = df.to_arrow().cast(_PA_SCHEMA)
+            writer = pq.ParquetWriter(out_fp, _PA_SCHEMA, append=out_fp.exists())
+            try:
+                writer.write_table(table)
+            finally:
+                writer.close()
         chunk_rows[traj_idx] = []
 
 
@@ -304,49 +314,45 @@ def generate_trajectories(
     stop_token_strs = set(dataset.stop_stokens)
     time_limit_us = time_limit.total_seconds() * 1e6
 
-    # Open one ParquetWriter per trajectory (skip files that already exist).
-    writers: list[pq.ParquetWriter | None] = []
+    # Build per-trajectory output paths; delete stale files when overwriting.
+    out_paths: list[Path | None] = []
     for traj_idx in range(n_trajectories):
         out_fp = output_dir / f"{traj_idx}.parquet"
         if out_fp.exists() and not do_overwrite:
             logger.info(f"Skipping existing {out_fp} (set do_overwrite=True to regenerate)")
-            writers.append(None)
+            out_paths.append(None)
         else:
-            writers.append(pq.ParquetWriter(out_fp, _PA_SCHEMA))
+            if out_fp.exists():  # do_overwrite=True; remove so first flush starts fresh
+                out_fp.unlink()
+            out_paths.append(out_fp)
 
     chunk_rows: list[list[dict]] = [[] for _ in range(n_trajectories)]
 
-    try:
-        for sample_idx in tqdm(range(len(dataset)), desc="Generating trajectories", unit="sample"):
-            x, metadata = dataset[sample_idx]
-            trajectories = _generate_for_sample(
-                model=model,
-                x=x,
-                vocab=vocab,
-                n_positions=n_positions,
-                ctx_size=ctx_size,
-                stop_token_strs=stop_token_strs,
-                time_limit_us=time_limit_us,
-                n_trajectories=n_trajectories,
-                device=device,
-                autocast_ctx=autocast_ctx,
-                temperature=temperature,
-            )
-            for traj_idx, tok_ids in enumerate(trajectories):
-                if writers[traj_idx] is not None:
-                    chunk_rows[traj_idx].extend(_format_trajectory(vocab, metadata, tok_ids))
+    for sample_idx in tqdm(range(len(dataset)), desc="Generating trajectories", unit="sample"):
+        x, metadata = dataset[sample_idx]
+        trajectories = _generate_for_sample(
+            model=model,
+            x=x,
+            vocab=vocab,
+            n_positions=n_positions,
+            ctx_size=ctx_size,
+            stop_token_strs=stop_token_strs,
+            time_limit_us=time_limit_us,
+            n_trajectories=n_trajectories,
+            device=device,
+            autocast_ctx=autocast_ctx,
+            temperature=temperature,
+        )
+        for traj_idx, tok_ids in enumerate(trajectories):
+            if out_paths[traj_idx] is not None:
+                chunk_rows[traj_idx].extend(_format_trajectory(vocab, metadata, tok_ids))
 
-            if (sample_idx + 1) % chunk_size == 0:
-                _flush_chunk(writers, chunk_rows)
-                logger.debug(f"Flushed chunk at sample {sample_idx + 1:,}")
+        if (sample_idx + 1) % chunk_size == 0:
+            _flush_chunk(out_paths, chunk_rows)
+            logger.debug(f"Flushed chunk at sample {sample_idx + 1:,}")
 
-        # Flush any remaining rows
-        _flush_chunk(writers, chunk_rows)
+    # Flush any remaining rows
+    _flush_chunk(out_paths, chunk_rows)
 
-    finally:
-        for writer in writers:
-            if writer is not None:
-                writer.close()
-
-    n_written = sum(1 for w in writers if w is not None)
+    n_written = sum(1 for p in out_paths if p is not None)
     logger.info(f"Trajectory generation complete. Wrote {n_written} parquet files to {output_dir}")
