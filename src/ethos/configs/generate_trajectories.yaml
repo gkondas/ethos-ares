@@ -1,7 +1,7 @@
 # Config for ethos_generate_trajectories / run_generate_trajectories.py
 # Required fields are marked ???; everything else has a sensible default.
 
-model_fp: /users/gbk2114/data/ethos-tokenize/models/20260318_153353:
+model_fp: /users/gbk2114/data/ethos-tokenize/models/20260318_153353/best_model.pt
 input_dir: /users/gbk2114/data/ethos-tokenize/test
 index_fp: /users/gbk2114/eq_stuff/tasks/eval/index_times/7573f855c4b050a9d79d57fefd8a139c/held_out
 output_dir: /users/gbk2114/data/ethos-tokenize/trajectories
@@ -13,7 +13,7 @@ device: "cuda"       # "cuda", "cuda:0", "cpu", etc.
 temperature: 1.0
 no_compile: false    # set true if torch.compile causes issues on your cluster
 do_overwrite: false  # set true to regenerate files that already exist
-chunk_size: 500      # samples processed before flushing rows to disk
+chunk_size: 1      # samples processed before flushing rows to disk
 seed: 42
 
 hydra:

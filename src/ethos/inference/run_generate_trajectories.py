@@ -17,12 +17,14 @@ def main(cfg: DictConfig) -> None:
     index_fp = Path(cfg.index_fp)
     logger.info(f"Loading index from {index_fp}")
     index_df = pl.read_parquet(index_fp)
+    
+    output_dir = Path(cfg.output_dir) / index_fp.parts[-2] / index_fp.parts[-1]
 
     generate_trajectories(
         model_fp=cfg.model_fp,
         input_dir=cfg.input_dir,
         index_df=index_df,
-        output_dir=cfg.output_dir,
+        output_dir=output_dir,
         n_trajectories=cfg.n_trajectories,
         time_limit=timedelta(days=cfg.time_limit_days),
         device=cfg.device,
