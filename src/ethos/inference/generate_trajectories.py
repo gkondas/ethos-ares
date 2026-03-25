@@ -207,9 +207,8 @@ def _format_trajectory(
 def _flush_chunk(out_paths: list[Path | None], chunk_rows: list[list[dict]]) -> None:
     """Write accumulated rows to their parquet files and clear the lists.
 
-    Opens a ParquetWriter per flush (append=True if the file already exists),
-    writes one row group, and closes immediately so the file is valid and
-    readable after every flush.
+    Writes accumulated rows to their parquet files and clears the lists.
+    If the file already exists, reads it and concatenates before writing.
     """
     for traj_idx, (out_fp, rows) in enumerate(zip(out_paths, chunk_rows)):
         if out_fp is not None and rows:
@@ -218,7 +217,10 @@ def _flush_chunk(out_paths: list[Path | None], chunk_rows: list[list[dict]]) -> 
                 pl.col("prediction_time").cast(pl.Datetime("us")),
             )
             table = df.to_arrow().cast(_PA_SCHEMA)
-            writer = pq.ParquetWriter(out_fp, _PA_SCHEMA, append=out_fp.exists())
+            if out_fp.exists():
+                existing = pq.read_table(out_fp)
+                table = pa.concat_tables([existing, table])
+            writer = pq.ParquetWriter(out_fp, _PA_SCHEMA)
             try:
                 writer.write_table(table)
             finally:
