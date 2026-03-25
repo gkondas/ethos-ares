@@ -1,4 +1,5 @@
 from .base import TimelineDataset
+from .index import IndexDataset
 from .ed import (
     CriticalOutcomeAtTriageDataset,
     EdReattendenceDataset,

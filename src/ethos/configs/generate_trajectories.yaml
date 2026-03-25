@@ -1,0 +1,20 @@
+# Config for ethos_generate_trajectories / run_generate_trajectories.py
+# Required fields are marked ???; everything else has a sensible default.
+
+model_fp: ???        # path to ethos model checkpoint (.pt)
+input_dir: ???       # path to ethos tokenized dataset directory
+index_fp: ???        # path to index parquet with subject_id + prediction_time columns
+output_dir: ???      # directory to write {0..n_trajectories-1}.parquet
+
+n_trajectories: 20   # independent trajectory repetitions per sample
+time_limit_days: 730.5  # max simulated time per trajectory (default: 2 years)
+
+device: "cuda"       # "cuda", "cuda:0", "cpu", etc.
+temperature: 1.0
+no_compile: false    # set true if torch.compile causes issues on your cluster
+do_overwrite: false  # set true to regenerate files that already exist
+chunk_size: 500      # samples processed before flushing rows to disk
+seed: 42
+
+hydra:
+  output_subdir: null
