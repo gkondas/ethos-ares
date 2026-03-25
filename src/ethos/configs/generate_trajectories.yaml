@@ -1,13 +1,13 @@
 # Config for ethos_generate_trajectories / run_generate_trajectories.py
 # Required fields are marked ???; everything else has a sensible default.
 
-model_fp: ???        # path to ethos model checkpoint (.pt)
-input_dir: ???       # path to ethos tokenized dataset directory
-index_fp: ???        # path to index parquet with subject_id + prediction_time columns
-output_dir: ???      # directory to write {0..n_trajectories-1}.parquet
+model_fp: /users/gbk2114/data/ethos-tokenize/models/20260318_153353:
+input_dir: /users/gbk2114/data/ethos-tokenize/test
+index_fp: /users/gbk2114/eq_stuff/tasks/eval/index_times/7573f855c4b050a9d79d57fefd8a139c/held_out
+output_dir: /users/gbk2114/data/ethos-tokenize/trajectories
 
 n_trajectories: 20   # independent trajectory repetitions per sample
-time_limit_days: 730.5  # max simulated time per trajectory (default: 2 years)
+time_limit_days: 31  # max simulated time per trajectory (default: 2 years)
 
 device: "cuda"       # "cuda", "cuda:0", "cpu", etc.
 temperature: 1.0
