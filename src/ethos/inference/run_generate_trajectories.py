@@ -17,8 +17,18 @@ def main(cfg: DictConfig) -> None:
     index_fp = Path(cfg.index_fp)
     logger.info(f"Loading index from {index_fp}")
     index_df = pl.read_parquet(index_fp)
-    
-    output_dir = Path(cfg.output_dir) / index_fp.parts[-2] / index_fp.parts[-1]
+
+    if cfg.world_size > 1:
+        index_df = index_df[cfg.worker_rank::cfg.world_size]
+        logger.info(
+            f"Worker {cfg.worker_rank}/{cfg.world_size}: processing {len(index_df):,} samples"
+        )
+        output_dir = (
+            Path(cfg.output_dir) / index_fp.parts[-2] / index_fp.parts[-1]
+            / f"rank_{cfg.worker_rank}"
+        )
+    else:
+        output_dir = Path(cfg.output_dir) / index_fp.parts[-2] / index_fp.parts[-1]
 
     generate_trajectories(
         model_fp=cfg.model_fp,

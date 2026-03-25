@@ -16,5 +16,8 @@ do_overwrite: false  # set true to regenerate files that already exist
 chunk_size: 500    # samples processed before flushing rows to disk
 seed: 42
 
+worker_rank: 0     # SLURM_ARRAY_TASK_ID — which shard this job processes
+world_size: 1      # total number of array tasks (1 = no sharding)
+
 hydra:
   output_subdir: null

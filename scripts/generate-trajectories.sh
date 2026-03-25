@@ -20,4 +20,10 @@ echo "HOSTNAME=$(hostname)"
 echo "CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES"
 nvidia-smi -L
 
-uv run ethos_generate_trajectories "$@"
+RANK_ARGS=""
+if [ -n "$SLURM_ARRAY_TASK_ID" ]; then
+    RANK_ARGS="worker_rank=$SLURM_ARRAY_TASK_ID world_size=$SLURM_ARRAY_TASK_COUNT"
+    echo "Array task: rank=$SLURM_ARRAY_TASK_ID / world_size=$SLURM_ARRAY_TASK_COUNT"
+fi
+
+uv run ethos_generate_trajectories $RANK_ARGS "$@"
