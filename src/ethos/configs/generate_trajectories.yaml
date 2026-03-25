@@ -13,7 +13,7 @@ device: "cuda"       # "cuda", "cuda:0", "cpu", etc.
 temperature: 1.0
 no_compile: false    # set true if torch.compile causes issues on your cluster
 do_overwrite: false  # set true to regenerate files that already exist
-chunk_size: 1      # samples processed before flushing rows to disk
+chunk_size: 500    # samples processed before flushing rows to disk
 seed: 42
 
 hydra:

@@ -220,11 +220,7 @@ def _flush_chunk(out_paths: list[Path | None], chunk_rows: list[list[dict]]) -> 
             if out_fp.exists():
                 existing = pq.read_table(out_fp)
                 table = pa.concat_tables([existing, table])
-            writer = pq.ParquetWriter(out_fp, _PA_SCHEMA)
-            try:
-                writer.write_table(table)
-            finally:
-                writer.close()
+            pq.write_table(table, out_fp)
         chunk_rows[traj_idx] = []
 
 
