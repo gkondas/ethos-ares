@@ -24,11 +24,11 @@ def main(cfg: DictConfig) -> None:
             f"Worker {cfg.worker_rank}/{cfg.world_size}: processing {len(index_df):,} samples"
         )
         output_dir = (
-            Path(cfg.output_dir) / index_fp.parts[-2] / index_fp.parts[-1]
-            / f"rank_{cfg.worker_rank}"
+            Path(cfg.output_dir) / index_fp.parts[-2] / f"rank_{cfg.worker_rank}"
         )
     else:
-        output_dir = Path(cfg.output_dir) / index_fp.parts[-2] / index_fp.parts[-1]
+        output_dir = Path(cfg.output_dir) / index_fp.parts[-2]
+
 
     generate_trajectories(
         model_fp=cfg.model_fp,

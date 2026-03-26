@@ -2,6 +2,7 @@
 #SBATCH --job-name=ethos-train
 #SBATCH --output=logs/%x_%j.out
 #SBATCH --partition=gpu
+#SBATCH --nodelist=c0102
 #SBATCH --nodes=1
 #SBATCH --gres=gpu:2
 #SBATCH --ntasks-per-node=1
@@ -14,6 +15,7 @@
 export HYDRA_FULL_ERROR=1
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export NCCL_DEBUG=INFO
+export NCCL_IB_DISABLE=1
 
 data_path="/users/gbk2114/data/ethos-tokenize"
 run_name=$(date +%Y%m%d_%H%M%S)
