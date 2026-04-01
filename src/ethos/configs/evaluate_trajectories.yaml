@@ -1,0 +1,10 @@
+trajectories_dir: ???
+ground_truth_fp: ???
+output_dir: "results/evaluation"
+
+codes: ???  # list of code strings to evaluate
+
+duration_days: 30  # duration in days to check for code occurrence
+
+hydra:
+  output_subdir: null
