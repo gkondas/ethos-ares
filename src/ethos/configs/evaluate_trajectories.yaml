@@ -2,7 +2,7 @@
 
 trajectory_dir: /users/gbk2114/data/ethos-tokenize/trajectories/7573f855c4b050a9d79d57fefd8a139c
 input_dir: /users/gbk2114/data/ethos-tokenize/test        # path to tokenized data dir (safetensors, vocab, etc.)
-output_fp: /users/gbk2114/data/ethos-tokenize/results        # path to write results parquet
+output_dir: /users/gbk2114/data/ethos-tokenize/results        # path to write results parquet
 
 codes:                # list of code strings to evaluate
   - "MEDS_DEATH"
