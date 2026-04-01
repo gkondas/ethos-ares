@@ -89,7 +89,7 @@ def _generate_labels(
         raise FileNotFoundError(f"No safetensors shards found in {input_dir}")
 
     rows: list[dict] = []
-    patients_found = 0
+    patients_found: set[int] = set()
 
     for shard_fp in shard_fps:
         with safe_open(shard_fp, framework="pt") as f:
@@ -105,7 +105,7 @@ def _generate_labels(
                 if sid not in subject_to_pred_times:
                     continue
 
-                patients_found += 1
+                patients_found.add(sid)
                 start = patient_offsets[i].item()
                 end = end_offsets[i].item()
 
@@ -117,8 +117,8 @@ def _generate_labels(
                     end_time = pred_time + duration_us
 
                     # Binary search for the window (pred_time, end_time]
-                    pred_t = th.tensor(pred_time)
-                    end_t = th.tensor(end_time)
+                    pred_t = th.tensor(pred_time, dtype=times.dtype)
+                    end_t = th.tensor(end_time, dtype=times.dtype)
                     window_start = th.searchsorted(times, pred_t, right=True).item()
                     window_end = th.searchsorted(times, end_t, right=True).item()
 
@@ -140,9 +140,9 @@ def _generate_labels(
                         )
 
     n_expected = len(subject_to_pred_times)
-    if patients_found < n_expected:
+    if len(patients_found) < n_expected:
         logger.warning(
-            f"{n_expected - patients_found} subjects from trajectories "
+            f"{n_expected - len(patients_found)} subjects from trajectories "
             f"not found in tokenized data"
         )
 
@@ -201,7 +201,10 @@ def evaluate_trajectories(
     )
 
     # Auto-detect trajectory files
-    traj_files = sorted(trajectory_dir.glob("*.parquet"), key=lambda p: int(p.stem))
+    traj_files = sorted(
+        (p for p in trajectory_dir.glob("*.parquet") if p.stem.isdigit()),
+        key=lambda p: int(p.stem),
+    )
     n_trajectories = len(traj_files)
     if n_trajectories == 0:
         raise FileNotFoundError(f"No parquet files found in {trajectory_dir}")
@@ -221,6 +224,7 @@ def evaluate_trajectories(
             traj.lazy()
             .filter(
                 pl.col("code").is_in(code_set)
+                & (pl.col("time") > pl.col("prediction_time"))
                 & (pl.col("time") <= (pl.col("prediction_time") + duration))
             )
             .with_columns(pl.col("prediction_time").cast(pl.Datetime("us")).cast(pl.Int64))
