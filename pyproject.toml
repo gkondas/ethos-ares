@@ -45,6 +45,7 @@ ethos_tokenize = "ethos.tokenize.run_tokenization:main"
 ethos_train = "ethos.train.run_training:main"
 ethos_infer = "ethos.inference.run_inference:main"
 ethos_generate_trajectories = "ethos.inference.run_generate_trajectories:main"
+ethos_evaluate_trajectories = "ethos.inference.run_evaluate_trajectories:main"
 
 [tool.setuptools.package-data]
 ethos = ["tokenize/maps/*.csv.gz"]
