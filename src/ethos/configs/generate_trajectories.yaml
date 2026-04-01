@@ -1,0 +1,23 @@
+# Config for ethos_generate_trajectories / run_generate_trajectories.py
+# Required fields are marked ???; everything else has a sensible default.
+
+model_fp: /users/gbk2114/data/ethos-tokenize/models/20260318_153353/best_model.pt
+input_dir: /users/gbk2114/data/ethos-tokenize/test
+index_fp: /users/gbk2114/eq_stuff/tasks/eval/tasks_from_index/7573f855c4b050a9d79d57fefd8a139c/INFUSION_START_225168_va__9b30aa30f8
+output_dir: /users/gbk2114/data/ethos-tokenize/trajectories
+
+n_trajectories: 20   # independent trajectory repetitions per sample
+time_limit_days: 731 # max simulated time per trajectory (default: 2 years)
+
+device: "cuda"       # "cuda", "cuda:0", "cpu", etc.
+temperature: 1.0
+no_compile: false    # set true if torch.compile causes issues on your cluster
+do_overwrite: false  # set true to regenerate files that already exist
+chunk_size: 100    # samples processed before flushing rows to disk
+seed: 42
+
+worker_rank: 0     # SLURM_ARRAY_TASK_ID — which shard this job processes
+world_size: 1      # total number of array tasks (1 = no sharding)
+
+hydra:
+  output_subdir: null
