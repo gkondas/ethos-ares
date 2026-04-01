@@ -14,7 +14,7 @@ def main(cfg: DictConfig) -> None:
 
     evaluate_trajectories(
         trajectory_dir=cfg.trajectory_dir,
-        labels_fp=cfg.labels_fp,
+        input_dir=cfg.input_dir,
         codes=codes,
         duration_days=cfg.duration_days,
         output_fp=cfg.output_fp,

@@ -1,7 +1,7 @@
 # Config for ethos_evaluate_trajectories / run_evaluate_trajectories.py
 
 trajectory_dir: ???   # path to merged trajectory dir (contains 0.parquet–N.parquet)
-labels_fp: ???        # path to labels parquet (subject_id, prediction_time, code, boolean_value)
+input_dir: ???        # path to tokenized data dir (safetensors, vocab, etc.)
 output_fp: ???        # path to write results parquet
 
 codes:                # list of code strings to evaluate
