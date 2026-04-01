@@ -17,7 +17,7 @@ def main(cfg: DictConfig) -> None:
         input_dir=cfg.input_dir,
         codes=codes,
         duration_days=cfg.duration_days,
-        output_fp=cfg.output_fp,
+        output_dir=cfg.output_dir,
     )
 
 

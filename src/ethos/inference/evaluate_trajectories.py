@@ -159,7 +159,7 @@ def evaluate_trajectories(
     input_dir: Path | str,
     codes: list[str],
     duration_days: int | float,
-    output_fp: Path | str,
+    output_dir: Path | str,
 ) -> pl.DataFrame:
     """Compute per-code trajectory probabilities and AUROC.
 
@@ -175,14 +175,15 @@ def evaluate_trajectories(
             (safetensors shards, vocabulary, etc.).
         codes: List of code strings to evaluate.
         duration_days: Time window in days from ``prediction_time``.
-        output_fp: Path to write the results parquet.
+        output_dir: Directory to write the results parquet. The output
+            filename is derived from the trajectory_dir basename.
 
     Returns:
         DataFrame with columns ``(code, auroc, prevalence, n)``.
     """
     trajectory_dir = Path(trajectory_dir)
     input_dir = Path(input_dir)
-    output_fp = Path(output_fp)
+    output_fp = Path(output_dir) / f"{trajectory_dir.name}.parquet"
 
     duration_us = int(duration_days * 86400 * 1_000_000)
 
