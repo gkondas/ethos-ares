@@ -38,9 +38,9 @@ def translate_icd_to_ethos(df: pl.DataFrame) -> pl.DataFrame:
             ICD-9 codes are converted to ICD-10 first via the repo mapping.
 
     Returns:
-        The input DataFrame with an added ``ethos_token`` column.  Rows whose
-        ICD code cannot be resolved at either the exact or 3-digit level get a
-        null ``ethos_token``.
+        The input DataFrame with an added ``ethos_tokens`` list column containing
+        the multi-token representation (category, 3-6, suffix) matching the vocab
+        format.  Rows whose 3-char prefix has no mapping get an empty list.
     """
     icd9_to_10 = get_icd_cm_9_to_10_mapping()
     code_to_name = get_icd_cm_code_to_name_mapping()
@@ -60,41 +60,37 @@ def translate_icd_to_ethos(df: pl.DataFrame) -> pl.DataFrame:
             .alias("_icd_code"),
         )
         .drop("_icd_ver")
-        # Exact match: look up full code
-        .with_columns(
-            pl.col("_icd_code")
-            .replace_strict(code_to_name, default=None)
-            .alias("_exact_name"),
-        )
-        # 3-digit prefix fallback
+        # Part 1: 3-char prefix → description (matches pipeline process_icd10)
         .with_columns(
             pl.col("_icd_code")
             .str.slice(0, 3)
             .replace_strict(code_to_name, default=None)
-            .alias("_fallback_name"),
+            .alias("_part1"),
         )
-        # Resolve: prefer exact, fall back to prefix
+        # Part 2: chars 3-6 of the code
         .with_columns(
-            pl.coalesce("_exact_name", "_fallback_name").alias("_resolved_name"),
-            pl.when(pl.col("_exact_name").is_not_null())
-            .then(pl.col("_icd_code"))
-            .otherwise(pl.col("_icd_code").str.slice(0, 3))
-            .alias("_resolved_prefix"),
+            pl.col("_icd_code").str.slice(3, 3).alias("_part2"),
         )
-        # Build and normalize the ETHOS token
+        # Part 3: chars 6+ (suffix)
         .with_columns(
-            pl.when(pl.col("_resolved_name").is_not_null())
-            .then(
-                _normalize_name(
-                    pl.lit("ICD//CM//")
-                    + pl.col("_resolved_prefix")
-                    + pl.lit("//")
-                    + pl.col("_resolved_name")
-                )
-            )
-            .alias("ethos_token"),
+            pl.col("_icd_code").str.slice(6).alias("_part3"),
         )
-        .drop("_icd_code", "_exact_name", "_fallback_name", "_resolved_name", "_resolved_prefix")
+        # Build the multi-token output
+        .with_columns(
+            pl.when(pl.col("_part1").is_not_null())
+            .then(_normalize_name(pl.lit("ICD//CM//") + pl.col("_part1")))
+            .alias("_tok1"),
+            pl.when(pl.col("_part2") != "")
+            .then(_normalize_name(pl.lit("ICD//CM//3-6//") + pl.col("_part2")))
+            .alias("_tok2"),
+            pl.when(pl.col("_part3") != "")
+            .then(_normalize_name(pl.lit("ICD//CM//SFX//") + pl.col("_part3")))
+            .alias("_tok3"),
+        )
+        .with_columns(
+            pl.concat_list("_tok1", "_tok2", "_tok3").list.drop_nulls().alias("ethos_tokens"),
+        )
+        .drop("_icd_code", "_part1", "_part2", "_part3", "_tok1", "_tok2", "_tok3")
     )
 
 
@@ -112,5 +108,5 @@ if __name__ == "__main__":
 
     for row in result.iter_rows(named=True):
         code = row["raw_path"].split("//")[-1]
-        token = row["ethos_token"]
-        print(f"{code:15s} -> {token}")
+        tokens = row["ethos_tokens"]
+        print(f"{code:15s} -> {tokens}")
