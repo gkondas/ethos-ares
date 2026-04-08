@@ -17,7 +17,25 @@ def _parse_time_interval_spec(spec: dict[str, dict]) -> dict[str, timedelta]:
 def inject_time_intervals(
     df: pl.DataFrame, *, time_intervals_spec: dict[str, dict]
 ) -> pl.DataFrame:
-    patient_id_col = MatchAndRevise.sort_cols[0]
+    patient_id_col, time_col = MatchAndRevise.sort_cols
+
+    is_sorted = (
+        df.select(
+            (pl.col(patient_id_col).shift(1) < pl.col(patient_id_col))
+            | (
+                (pl.col(patient_id_col).shift(1) == pl.col(patient_id_col))
+                & (pl.col(time_col).shift(1) <= pl.col(time_col))
+            )
+            | (pl.col(patient_id_col).shift(1).is_null())
+        )
+        .to_series()
+        .all()
+    )
+    if not is_sorted:
+        raise ValueError(
+            f"Data is not sorted by ({patient_id_col}, {time_col}). "
+            "inject_time_intervals requires sorted input to compute correct time deltas."
+        )
 
     time_intervals = _parse_time_interval_spec(time_intervals_spec)
     interval_names = sorted(time_intervals.keys(), reverse=True, key=lambda v: time_intervals[v])

@@ -159,7 +159,25 @@ class TimelineDataset(th.utils.data.Dataset):
             .collect()
         )
 
-        patient_id_col = MatchAndRevise.sort_cols[0]
+        patient_id_col, time_col = MatchAndRevise.sort_cols
+        is_sorted = (
+            df.select(
+                (pl.col(patient_id_col).shift(1) < pl.col(patient_id_col))
+                | (
+                    (pl.col(patient_id_col).shift(1) == pl.col(patient_id_col))
+                    & (pl.col(time_col).shift(1) <= pl.col(time_col))
+                )
+                | (pl.col(patient_id_col).shift(1).is_null())
+            )
+            .to_series()
+            .all()
+        )
+        if not is_sorted:
+            raise ValueError(
+                f"Data in {in_fp} is not sorted by ({patient_id_col}, {time_col}). "
+                "This indicates a bug in the tokenization pipeline."
+            )
+
         patient_df = (
             df.set_sorted(patient_id_col)
             .group_by(patient_id_col, maintain_order=True)
