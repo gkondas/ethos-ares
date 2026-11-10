@@ -6,6 +6,11 @@ output_dir: /users/gbk2114/data/ethos-tokenize/results        # path to write re
 
 codes:                # list of code strings to evaluate
   - "MEDS_DEATH"
+  - ICD//CM//3-6//118 # I25118
+  - ICD//CM//3-6//609
+  - ICD//CM//3-6//6
+  - ICD//CM//3-6//2
+  - ICD//CM//3-6//118
 
 duration_days: 30     # time window in days from prediction_time
 
